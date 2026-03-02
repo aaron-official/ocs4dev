@@ -32,17 +32,17 @@ ocs4dev is a specialized AI assistant designed to help developers integrate fint
 ## Model Options
 
 ### Local Model (Free)
-- **Qwen2.5-Coder-7B-Instruct-AWQ**: Quantized model optimized for code generation
-- Requires GPU for best performance
+- **Qwen2.5-Coder-7B-Instruct-AWQ**: Efficient quantized model optimized for free-tier Spaces
+- Works on CPU (slow) or GPU (fast)
 - No API key needed
 
 ### API Models
-- **OpenAI**: GPT-4o-mini (budget) / O4-mini (premium)
-- **Anthropic**: Claude-3.5-Sonnet / Claude-4-Sonnet
-- **Google**: Gemini-2.0-Flash / Gemini-2.0-Flash-Thinking
+- **OpenAI**: GPT-5.3-Codex-Mini / GPT-5.3-Codex
+- **Anthropic**: Claude-4.6-Sonnet / Claude-4.6-Opus
+- **Google**: Gemini-3.1-Flash / Gemini-3.1-Pro
 
 ## Quick Start
-1. Visit the [Space URL](https://huggingface.co/spaces/YOUR_USERNAME/ocs4dev)
+1. Visit the [Space URL](https://huggingface.co/spaces/aaron-official/ocs4dev)
 2. Choose your preferred model provider
 3. Add API keys if using cloud models
 4. Start asking questions about fintech API integration!
