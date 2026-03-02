@@ -36,22 +36,22 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import accelerate
 
 # Configuration
-DEFAULT_MODEL = "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ"  # Quantized version for better performance
+DEFAULT_MODEL = "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ"  # Quantized version for better performance on free tier
 TOP_K_DOCUMENTS = 5
 
 # Model configurations for each provider
 MODEL_CONFIGS = {
     "openai": {
-        "budget": "gpt-4o-mini",
-        "premium": "o4-mini"
+        "budget": "gpt-5.3-codex-mini",
+        "premium": "gpt-5.3-codex"
     },
     "anthropic": {
-        "budget": "claude-3-5-sonnet-20241022",
-        "premium": "claude-4-sonnet-20250109"
+        "budget": "claude-4-6-sonnet",
+        "premium": "claude-4-6-opus"
     },
     "google": {
-        "budget": "gemini-2.0-flash-exp",
-        "premium": "gemini-2.0-flash-thinking-exp-1219"
+        "budget": "gemini-3-1-flash",
+        "premium": "gemini-3-1-pro"
     }
 }
 
@@ -85,7 +85,7 @@ class OCS4DevAssistant:
 
     def setup_local_model(self):
         """Initialize the local Qwen2.5-Coder model"""
-        print("🚀 Loading Qwen2.5-Coder-7B-Instruct (AWQ quantized)...")
+        print(f"🚀 Loading {DEFAULT_MODEL}...")
 
         try:
             # Check if CUDA is available
@@ -114,13 +114,13 @@ class OCS4DevAssistant:
                 tokenizer=self.tokenizer,
                 torch_dtype=torch.float16 if device == "cuda" else torch.float32,
                 device_map="auto" if device == "cuda" else None,
-                max_new_tokens=1024,
+                max_new_tokens=2048,  # Increased context window
                 temperature=0.3,
                 do_sample=True,
                 pad_token_id=self.tokenizer.eos_token_id
             )
 
-            print("✅ Local Qwen2.5-Coder model loaded successfully!")
+            print(f"✅ Local {DEFAULT_MODEL} loaded successfully!")
 
         except Exception as e:
             print(f"❌ Error loading local model: {e}")
@@ -255,7 +255,7 @@ Context: {context}"""
             # Generate response
             outputs = self.local_pipeline(
                 formatted_prompt,
-                max_new_tokens=1024,
+                max_new_tokens=2048,
                 temperature=0.3,
                 do_sample=True,
                 pad_token_id=self.tokenizer.eos_token_id
@@ -825,7 +825,7 @@ def create_gradio_interface():
                         placeholder="sk-...",
                         label="OpenAI API Key",
                         type="password",
-                        info="Budget: gpt-4o-mini | Premium: o4-mini (advanced reasoning)",
+                        info="Budget: gpt-5.3-codex-mini | Premium: gpt-5.3-codex",
                         elem_classes="api-key-input"
                     )
 
@@ -833,7 +833,7 @@ def create_gradio_interface():
                         placeholder="sk-ant-...",
                         label="Anthropic API Key",
                         type="password",
-                        info="Budget: claude-3.5-sonnet | Premium: claude-4-sonnet",
+                        info="Budget: claude-4.6-sonnet | Premium: claude-4.6-opus",
                         elem_classes="api-key-input"
                     )
 
@@ -841,7 +841,7 @@ def create_gradio_interface():
                         placeholder="AI...",
                         label="Google API Key",
                         type="password",
-                        info="Budget: gemini-2.0-flash | Premium: gemini-2.0-flash-thinking",
+                        info="Budget: gemini-3.1-flash | Premium: gemini-3.1-pro",
                         elem_classes="api-key-input"
                     )
 
