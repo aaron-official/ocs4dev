@@ -415,10 +415,9 @@ Context: {context}"""
             return f"❌ Error processing request: {str(e)}"
 
 def create_gradio_interface():
-    """Create the Gradio interface optimized for HuggingFace Spaces"""
+    """Create the Gradio interface with a professional, modern layout."""
     print("🚀 Starting ocs4dev - Your Fintech API Integration Assistant")
 
-    # Initialize assistant
     try:
         assistant = OCS4DevAssistant()
         print("✅ ocs4dev initialized successfully!")
@@ -426,484 +425,202 @@ def create_gradio_interface():
         print(f"❌ Failed to initialize ocs4dev: {e}")
         return None
 
-    # Custom CSS for better styling and copy buttons
+    # --- NEW Professional CSS ---
     custom_css = """
+    /* --- General & Layout --- */
+    #main-container {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+    }
+    #chat-container {
+        flex: 3;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    #sidebar-container {
+        flex: 1;
+        min-width: 350px;
+        max-width: 400px;
+        padding: 20px;
+        border-left: 1px solid var(--border-color-primary);
+        background: var(--background-fill-secondary);
+        transition: all 0.3s ease;
+        overflow-y: auto;
+        height: 100%;
+        box-sizing: border-box;
+    }
+    #sidebar-container.hidden {
+        min-width: 0;
+        max-width: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    
+    /* --- Header --- */
+    #header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    #header h1 { margin: 0; font-size: 1.8em; }
+    
+    /* --- Chat Interface --- */
+    #chatbot {
+        flex-grow: 1;
+        overflow-y: auto;
+        border: 1px solid var(--border-color-primary);
+        border-radius: 8px;
+        background-color: var(--background-fill-primary);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    #chat-input-container {
+        margin-top: 20px;
+    }
+
+    /* --- Sidebar --- */
+    #sidebar-title { font-size: 1.5em; margin-bottom: 20px; }
+    
+    /* --- Utility & Theming --- */
+    .gradio-container { background: var(--background-fill-primary) !important; }
+    .footer { display: none !important; }
     .warning-box {
         background-color: #fff3cd;
         border: 1px solid #ffeaa7;
-        border-radius: 8px;
         padding: 12px;
         margin: 10px 0;
-        font-size: 14px;
         color: #856404 !important;
-    }
-    .model-info {
-        background-color: #e3f2fd;
-        border-left: 4px solid #2196f3;
-        padding: 12px;
-        margin: 10px 0;
-        border-radius: 4px;
-        color: #1565c0 !important;
-    }
-    .feature-box {
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
         border-radius: 8px;
-        padding: 15px;
-        margin: 10px 0;
-        color: #212529 !important;
     }
-    .code-block {
-        background-color: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 6px;
-        padding: 12px;
-        margin: 8px 0;
-        position: relative;
-        font-family: 'Courier New', monospace;
-        color: #212529 !important;
-    }
-    .copy-button {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: #007bff;
-        color: white;
-        border: none;
-        padding: 4px 8px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-    }
-    .copy-button:hover {
-        background: #0056b3;
-    }
-    /* Hide Gradio footer */
-    .footer {
-        display: none !important;
-    }
-
-    /* Overlay backdrop */
-    .sidebar-backdrop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 999;
-        display: none;
-    }
-
-    .sidebar-backdrop.show {
-        display: block;
-    }
-
-    /* Sidebar as overlay */
-    .sidebar-container {
-        position: fixed;
-        left: 0;
-        top: 0;
-        height: 100vh;
-        width: 400px; /* Wider sidebar for better text display */
-        max-width: 90vw; /* Responsive on mobile */
-        background: var(--background-fill-primary);
-        border-right: 1px solid var(--border-color-primary);
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        z-index: 1000;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 20px;
-        padding-top: 60px; /* Space for close button */
-        box-sizing: border-box;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .sidebar-container.open {
-        transform: translateX(0);
-    }
-
-    /* Fix white spaces in sidebar */
-    .sidebar-container .gr-form {
-        gap: 0 !important;
-    }
-
-    .sidebar-container .gr-box {
-        border: none !important;
-        background: transparent !important;
-    }
-
-    .sidebar-container .gr-padded {
-        padding: 8px !important;
-    }
-
-    .sidebar-container .gr-panel {
-        background: var(--background-fill-secondary) !important;
-        padding: 12px !important;
-        border-radius: 8px;
-        margin-bottom: 12px;
-    }
-
-    /* Style sidebar content */
-    .sidebar-container h2 {
-        color: var(--body-text-color) !important;
-        margin-bottom: 20px;
-        font-size: 1.5rem;
-    }
-
-    .sidebar-container .gr-markdown h2 {
-        color: var(--body-text-color) !important;
-        margin-top: 0;
-    }
-
-    /* Remove unwanted white borders and backgrounds */
-    .sidebar-container .gradio-container {
-        background: transparent !important;
-        border: none !important;
-    }
-
-    .sidebar-container .gr-form {
-        background: transparent !important;
-        border: none !important;
-        gap: 12px !important;
-    }
-
-    .sidebar-container .gr-input-wrapper {
-        margin: 0 !important;
-    }
-
-    .sidebar-container .gr-group {
-        background: var(--background-fill-secondary) !important;
-        border: 1px solid var(--border-color-primary) !important;
-        border-radius: 8px;
-        padding: 12px;
-        margin-bottom: 12px;
-    }
-
-    /* Ensure text visibility in sidebar */
-    .sidebar-container * {
-        color: var(--body-text-color) !important;
-    }
-
-    .sidebar-title {
-        font-size: 1.5rem !important;
-        font-weight: bold !important;
-        margin-bottom: 20px !important;
-        color: var(--body-text-color) !important;
-    }
-
-    .sidebar-toggle {
-        position: fixed;
-        left: 20px;
-        top: 20px;
-        z-index: 998;
-        background: var(--button-primary-background-fill);
-        color: var(--button-primary-text-color);
-        border: none;
-        padding: 12px 16px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 18px;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .sidebar-toggle:hover {
-        background: var(--button-primary-background-fill-hover);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .sidebar-close {
-        position: absolute;
-        right: 20px;
-        top: 20px;
-        background: transparent;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: var(--body-text-color);
-        padding: 5px;
-        border-radius: 4px;
-        transition: background 0.2s ease;
-        z-index: 1001;
-    }
-
-    .sidebar-close:hover {
-        background: var(--background-fill-secondary);
-    }
-
-    /* Main content stays in place */
-    .main-content {
-        min-height: 100vh;
-        padding-left: 70px; /* Space for menu button */
-    }
-
-    /* Custom chat styling */
-    .chat-container {
-        max-width: 100%;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    /* Dark mode specific fixes */
-    .dark .sidebar-container {
-        background: var(--background-fill-primary);
-    }
-
     .dark .warning-box {
         background-color: #2d2d2d;
-        border: 1px solid #ffc107;
+        border-color: #ffc107;
         color: #ffc107 !important;
-    }
-    .dark .model-info {
-        background-color: #1a1a1a;
-        border-left: 4px solid #64b5f6;
-        color: #64b5f6 !important;
-    }
-    .dark .feature-box {
-        background-color: #2d2d2d;
-        border: 1px solid #495057;
-        color: #e9ecef !important;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .sidebar-container {
-            width: 85vw;
-        }
-        .main-content {
-            padding-left: 60px;
-        }
     }
     """
 
-    # Create the interface
-    def chat_with_config(message, history, provider, tier, openai_key, anthropic_key, google_key):
-        """Chat function with configuration"""
-        api_key = None
-        if provider == "openai":
-            api_key = openai_key
-        elif provider == "anthropic":
-            api_key = anthropic_key
-        elif provider == "google":
-            api_key = google_key
-
-        return assistant.chat(message, history, provider, tier, api_key)
-
-    # Create interface
     with gr.Blocks(
-        title="ocs4dev - Fintech API Assistant",
         theme=gr.themes.Soft(
-            primary_hue="blue",
-            secondary_hue="gray",
-            neutral_hue="slate",
+            primary_hue="slate",
+            secondary_hue="blue",
         ),
         css=custom_css,
-        fill_height=True,
-        js="""
-        function() {
-            // Add sidebar toggle functionality with backdrop
-            const backdrop = document.createElement('div');
-            backdrop.className = 'sidebar-backdrop';
-            document.body.appendChild(backdrop);
-
-            const toggleButton = document.createElement('button');
-            toggleButton.innerHTML = '☰';
-            toggleButton.className = 'sidebar-toggle';
-            toggleButton.title = 'Open Settings';
-
-            const sidebar = document.querySelector('.sidebar-container');
-
-            // Add close button to sidebar
-            const closeButton = document.createElement('button');
-            closeButton.innerHTML = '✕';
-            closeButton.className = 'sidebar-close';
-            closeButton.title = 'Close Settings';
-            sidebar.insertBefore(closeButton, sidebar.firstChild);
-
-            function openSidebar() {
-                sidebar.classList.add('open');
-                backdrop.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeSidebar() {
-                sidebar.classList.remove('open');
-                backdrop.classList.remove('show');
-                document.body.style.overflow = '';
-            }
-
-            toggleButton.onclick = openSidebar;
-            closeButton.onclick = closeSidebar;
-            backdrop.onclick = closeSidebar;
-
-            // ESC key to close
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
-                    closeSidebar();
-                }
-            });
-
-            document.body.appendChild(toggleButton);
-        }
-        """
+        title="ocs4dev - Fintech API Assistant",
+        fill_height=True
     ) as interface:
 
-        # Header
-        with gr.Column(elem_classes="main-content"):
-            gr.Markdown("# 🏦 ocs4dev - Your Fintech API Integration Assistant")
-            gr.Markdown("*Specialized AI assistant for integrating fintech APIs including MTN MoMo, Airtel, Pesapal etc*")
+        # --- State Management ---
+        sidebar_state = gr.State(True)  # True = visible, False = hidden
 
-            # Main chat interface
-            chatbot = gr.Chatbot(
-                height=500,
-                placeholder="Ask me about fintech API integration, authentication, code examples, or best practices...",
-                label="ocs4dev Assistant",
-                show_copy_button=True,  # Enable copy button for chat messages
-                render_markdown=True,
-                elem_classes="chat-container"
-            )
+        with gr.Row(elem_id="main-container"):
+            
+            # --- Main Chat Area (Left Column) ---
+            with gr.Column(elem_id="chat-container"):
+                
+                # Header
+                with gr.Row(elem_id="header"):
+                    with gr.Column():
+                        gr.Markdown("# 🏦 ocs4dev", elem_id="app-title")
+                        gr.Markdown("Your Fintech API Integration Assistant", elem_id="app-subtitle")
+                    
+                    # Sidebar Toggle Button
+                    toggle_sidebar_btn = gr.Button("⚙️ Settings", variant="secondary", size="sm")
 
-            msg = gr.Textbox(
-                placeholder="How do I authenticate with MTN MoMo API?",
-                label="Your Question",
-                lines=2,
-                show_copy_button=True  # Enable copy button for input
-            )
+                # Chatbot
+                chatbot = gr.Chatbot(elem_id="chatbot", label="ocs4dev Assistant", show_label=False)
 
-            with gr.Row():
-                clear = gr.Button("Clear", variant="secondary")
-                submit = gr.Button("Send", variant="primary")
+                # Input Area
+                with gr.Column(elem_id="chat-input-container"):
+                    msg = gr.Textbox(
+                        placeholder="e.g., How do I authenticate with the MTN MoMo API?",
+                        label="Your Question",
+                        show_label=False,
+                        lines=3
+                    )
+                    with gr.Row():
+                        clear = gr.Button("Clear", variant="secondary")
+                        submit = gr.Button("Send", variant="primary")
 
-            # Example questions
-            gr.Examples(
-                examples=[
-                    "How do I authenticate with MTN MoMo API?",
-                    "Show me a Pesapal payment integration example",
-                    "What are the required headers for Sentezo API?",
-                    "How do I handle payment webhooks?",
-                    "Best practices for API error handling",
-                    "How to test API integrations in sandbox mode?",
-                    "Show me a complete payment flow implementation",
-                    "How to secure API keys in production?",
-                    "What's the difference between sandbox and production?",
-                    "How do I implement payment status callbacks?"
-                ],
-                inputs=msg,
-                label="💡 Example Questions"
-            )
+                # Collapsible Examples
+                with gr.Accordion("💡 Example Questions", open=False):
+                    gr.Examples(
+                        examples=[
+                            "How do I authenticate with MTN MoMo API?",
+                            "Show me a Pesapal payment integration example",
+                            "What are the required headers for Sentezo API?",
+                            "How do I handle payment webhooks?",
+                            "Best practices for API error handling"
+                        ],
+                        inputs=msg
+                    )
 
-        # Sidebar (hidden by default)
-        with gr.Column(elem_classes="sidebar-container", elem_id="settings-sidebar"):
-            gr.Markdown("## ⚙️ Configuration", elem_classes="sidebar-title")
-
-            # Model provider selection
-            with gr.Group():
-                provider = gr.Radio(
-                    choices=["local", "openai", "anthropic", "google"],
-                    value="local",
-                    label="Model Provider",
-                    info="Local model is free but requires GPU. API models need keys.",
-                    elem_classes="provider-selector"
-                )
-
-                tier = gr.Radio(
-                    choices=["budget", "premium"],
-                    value="budget",
-                    label="Model Tier",
-                    info="Budget models are faster/cheaper, Premium models are more capable",
-                    elem_classes="tier-selector"
-                )
-
-            # API Keys Section
-            with gr.Accordion("🔑 API Keys", open=True, elem_classes="api-keys-section"):
-                gr.HTML('<div class="warning-box">⚠️ <strong>Security Warning:</strong> Create test API keys for this app and delete them after use. Never share production keys.</div>')
+            # --- Sidebar (Right Column) ---
+            with gr.Column(visible=True, elem_id="sidebar-container") as sidebar:
+                gr.Markdown("## Configuration", elem_id="sidebar-title")
 
                 with gr.Group():
-                    openai_key = gr.Textbox(
-                        placeholder="sk-...",
-                        label="OpenAI API Key",
-                        type="password",
-                        info="Budget: gpt-5.3-codex-mini | Premium: gpt-5.3-codex",
-                        elem_classes="api-key-input"
+                    provider = gr.Radio(
+                        choices=["local", "openai", "anthropic", "google"],
+                        value="local",
+                        label="Model Provider",
+                        info="Local model is free but requires a GPU."
+                    )
+                    tier = gr.Radio(
+                        choices=["budget", "premium"],
+                        value="budget",
+                        label="Model Tier",
+                        info="Budget models are faster, Premium are more capable."
                     )
 
-                    anthropic_key = gr.Textbox(
-                        placeholder="sk-ant-...",
-                        label="Anthropic API Key",
-                        type="password",
-                        info="Budget: claude-4.6-sonnet | Premium: claude-4.6-opus",
-                        elem_classes="api-key-input"
-                    )
+                with gr.Accordion("🔑 API Keys", open=True):
+                    gr.HTML('<div class="warning-box">⚠️ Never share production keys. Use test keys and delete them after use.</div>')
+                    openai_key = gr.Textbox(placeholder="sk-...", label="OpenAI API Key", type="password")
+                    anthropic_key = gr.Textbox(placeholder="sk-ant-...", label="Anthropic API Key", type="password")
+                    google_key = gr.Textbox(placeholder="AI...", label="Google API Key", type="password")
 
-                    google_key = gr.Textbox(
-                        placeholder="AI...",
-                        label="Google API Key",
-                        type="password",
-                        info="Budget: gemini-3.1-flash | Premium: gemini-3.1-pro",
-                        elem_classes="api-key-input"
-                    )
+        # --- Event Handlers & Logic ---
+        def chat_with_config(message, history, provider, tier, openai_key, anthropic_key, google_key):
+            api_key = None
+            if provider == "openai": api_key = openai_key
+            elif provider == "anthropic": api_key = anthropic_key
+            elif provider == "google": api_key = google_key
+            return assistant.chat(message, history, provider, tier, api_key)
 
-            # Updated model information
-            gr.HTML('<div class="model-info">🚀 <strong>Pro Tip:</strong> Add your API keys above for faster and better responses. Local model works but API models provide superior performance!</div>')
-
-            # Features
-            with gr.Accordion("✨ Features", open=False, elem_classes="features-section"):
-                gr.HTML('''
-                <div class="feature-box">
-                    <strong>🔧 Code-Focused:</strong> Optimized for API integration tasks<br>
-                    <strong>🔒 Secure:</strong> No API keys stored permanently<br>
-                    <strong>📋 Copy-Friendly:</strong> Easy code copying with built-in buttons<br>
-                    <strong>🚀 Fast:</strong> Multiple model options for best performance<br>
-                    <strong>🔄 Multi-Provider:</strong> Switch between AI models seamlessly
-                </div>
-                ''')
-
-        # Chat functionality with simple response
         def respond(message, history, provider, tier, openai_key, anthropic_key, google_key):
-            """Handle chat responses with simulated streaming"""
             if not message:
                 return history, ""
-
-            # Add user message to history
             history = history or []
-
-            # Get the full response
             bot_message = chat_with_config(message, history, provider, tier, openai_key, anthropic_key, google_key)
+            history.append((message, bot_message))
+            return history, ""
 
-            # Simulate streaming by yielding partial responses
-            partial = ""
-            words = bot_message.split(" ")
-
-            # Stream words in chunks for smooth appearance
-            chunk_size = 3  # Words per chunk
-            for i in range(0, len(words), chunk_size):
-                chunk = " ".join(words[i:i+chunk_size])
-                partial += chunk + " "
-                yield history + [(message, partial.strip())], ""
-
-            # Final update with complete response
-            yield history + [(message, bot_message)], ""
-
-        # Connect the interface
-        submit.click(
-            respond,
-            inputs=[msg, chatbot, provider, tier, openai_key, anthropic_key, google_key],
-            outputs=[chatbot, msg]
-        )
-
-        msg.submit(
-            respond,
-            inputs=[msg, chatbot, provider, tier, openai_key, anthropic_key, google_key],
-            outputs=[chatbot, msg]
-        )
-
+        submit.click(respond, 
+                     inputs=[msg, chatbot, provider, tier, openai_key, anthropic_key, google_key], 
+                     outputs=[chatbot, msg])
+        msg.submit(respond, 
+                   inputs=[msg, chatbot, provider, tier, openai_key, anthropic_key, google_key], 
+                   outputs=[chatbot, msg])
         clear.click(lambda: ([], ""), outputs=[chatbot, msg])
 
+        # Sidebar Toggle Logic
+        def toggle_sidebar(is_visible):
+            return gr.update(visible=not is_visible), not is_visible
+
+        toggle_sidebar_btn.click(
+            toggle_sidebar, 
+            inputs=[sidebar_state], 
+            outputs=[sidebar, sidebar_state]
+        )
+        
         # Footer
         gr.Markdown("---")
-        gr.Markdown("Built with ❤️ by Aaron | Using Qwen2.5-Coder, LangChain, and Gradio | [GitHub](https://github.com/aaron-official/ocs4dev.git)")
+        gr.Markdown("Built by Repol | Powered by OpenClaw")
 
     return interface
 
