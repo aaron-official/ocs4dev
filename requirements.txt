@@ -1,10 +1,7 @@
-# Core Dependencies (IMPORTANT: transformers>=4.37.0 required for Qwen2.5-Coder)
-transformers==4.53.2
-torch==2.6.0
-accelerate==1.8.1
+# Core Dependencies
 huggingface-hub==0.33.4
 
-# LangChain (updated to avoid deprecation warnings)
+# LangChain
 langchain==0.3.26
 langchain-community==0.3.27
 langchain-core==0.3.69
@@ -14,6 +11,7 @@ langchain-text-splitters==0.3.8
 langchain-openai==0.3.28
 langchain-anthropic==0.3.17
 langchain-google-genai==2.1.8
+langchain-huggingface==0.1.2
 
 # Supabase
 supabase==2.16.0
@@ -26,9 +24,3 @@ gradio==5.31.0
 python-dotenv==1.1.1
 numpy==2.0.2
 sentence-transformers==4.1.0
-
-# Quantization and Performance
-bitsandbytes==0.46.1    # For 8-bit quantization
-auto-gptq==0.7.1        # For GPTQ quantization
-autoawq==0.2.9          # For AWQ quantization
-intel_extension_for_pytorch==2.7.0  # Intel optimization for PyTorch
