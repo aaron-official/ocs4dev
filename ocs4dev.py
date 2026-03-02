@@ -7,7 +7,7 @@ import uuid
 import warnings
 warnings.filterwarnings("ignore")
 
-# Updated imports to avoid deprecation warnings
+# LangChain imports
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_core.documents import Document
@@ -24,7 +24,9 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_huggingface import HuggingFaceEndpoint
+
+# Hugging Face Inference
+from huggingface_hub import InferenceClient
 
 # Supabase integration
 from langchain_community.vectorstores import SupabaseVectorStore
@@ -65,9 +67,9 @@ class OCS4DevAssistant:
         """Setup environment variables"""
         self.supabase_url = os.getenv('SUPABASE_URL')
         self.supabase_key = os.getenv('SUPABASE_SERVICE_KEY')
-        self.hf_token = os.getenv('HF_TOKEN') # For Inference API
+        self.hf_token = os.getenv('HF_TOKEN')
 
-        # API keys (provided by users in UI)
+        # API keys
         self.openai_api_key = os.getenv('OPENAI_API_KEY')
         self.anthropic_api_key = os.getenv('ANTHROPIC_API_KEY')
         self.google_api_key = os.getenv('GOOGLE_API_KEY')
@@ -81,7 +83,6 @@ class OCS4DevAssistant:
         try:
             self.supabase_client = create_client(self.supabase_url, self.supabase_key)
             
-            # Use OpenAI embeddings for retrieval
             if self.openai_api_key:
                 self.embeddings = OpenAIEmbeddings(
                     model="text-embedding-3-small",
@@ -103,43 +104,32 @@ class OCS4DevAssistant:
             print(f"❌ Vector store setup failed: {e}")
             self.vector_store = None
 
-    def get_llm_instance(self, provider: str, tier: str, api_key: Optional[str] = None):
-        """Get LLM instance based on provider and tier"""
-        if provider == "free":
-            return HuggingFaceEndpoint(
-                repo_id=DEFAULT_FREE_MODEL,
-                huggingfacehub_api_token=self.hf_token or api_key,
-                temperature=0.3,
-                max_new_tokens=1024,
-                timeout=300
-            )
-
-        if not api_key:
-            raise ValueError(f"API key required for {provider}")
-
-        model_name = MODEL_CONFIGS[provider][tier]
-
-        if provider == "openai":
-            return ChatOpenAI(model=model_name, temperature=0.3, max_tokens=1000, openai_api_key=api_key)
-        elif provider == "anthropic":
-            return ChatAnthropic(model=model_name, temperature=0.3, max_tokens=1000, anthropic_api_key=api_key)
-        elif provider == "google":
-            return ChatGoogleGenerativeAI(model=model_name, temperature=0.3, max_output_tokens=1000, google_api_key=api_key)
-        else:
-            raise ValueError(f"Unsupported provider: {provider}")
-
-    def generate_free_response(self, prompt: str, context: str = "") -> str:
-        """Generate response using HF Inference API"""
-        llm = self.get_llm_instance("free", "budget")
+    def generate_free_response(self, prompt: str, context: str = "", api_key: str = None) -> str:
+        """Generate response using HF Serverless Inference API"""
+        token = api_key or self.hf_token
+        client = InferenceClient(model=DEFAULT_FREE_MODEL, token=token)
         
         system_prompt = f"""You are ocs4dev, a specialized fintech API integration assistant. You help developers integrate fintech APIs including MTN MoMo, Pesapal, and Sentezo.
 Provide practical, code-focused responses with examples.
 Context: {context}"""
 
-        full_prompt = f"{system_prompt}\n\nUser: {prompt}\nAssistant:"
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ]
         
         try:
-            return llm.invoke(full_prompt)
+            response = ""
+            for message in client.chat_completion(
+                messages,
+                max_tokens=1024,
+                stream=True,
+                temperature=0.3
+            ):
+                token_text = message.choices[0].delta.content
+                if token_text:
+                    response += token_text
+            return response
         except Exception as e:
             return f"❌ Error from Inference API: {str(e)}"
 
@@ -182,7 +172,7 @@ Context: {context}"""
         try:
             if provider == "free":
                 context = self.get_retrieval_context(message)
-                return self.generate_free_response(message, context)
+                return self.generate_free_response(message, context, api_key)
             
             # Update API key
             if api_key:
@@ -190,10 +180,19 @@ Context: {context}"""
                 elif provider == "anthropic": self.anthropic_api_key = api_key
                 elif provider == "google": self.google_api_key = api_key
 
-            if not api_key and not getattr(self, f"{provider}_api_key"):
+            current_key = api_key or getattr(self, f"{provider}_api_key")
+            if not current_key:
                 return f"❌ No API key provided for {provider}."
 
-            llm = self.get_llm_instance(provider, tier, api_key or getattr(self, f"{provider}_api_key"))
+            model_name = MODEL_CONFIGS[provider][tier]
+            
+            if provider == "openai":
+                llm = ChatOpenAI(model=model_name, temperature=0.3, max_tokens=1000, openai_api_key=current_key)
+            elif provider == "anthropic":
+                llm = ChatAnthropic(model=model_name, temperature=0.3, max_tokens=1000, anthropic_api_key=current_key)
+            elif provider == "google":
+                llm = ChatGoogleGenerativeAI(model=model_name, temperature=0.3, max_output_tokens=1000, google_api_key=current_key)
+            
             rag_chain = self.create_retrieval_chain(llm, provider)
 
             if not rag_chain:
@@ -270,7 +269,6 @@ def create_gradio_interface():
         def respond(message, history, provider, tier, hf_token, openai_key, anthropic_key, google_key):
             if not message: return history, ""
             history = history or []
-            # Map keys to the chat function
             api_key = hf_token if provider == "free" else (openai_key if provider == "openai" else (anthropic_key if provider == "anthropic" else google_key))
             bot_message = assistant.chat(message, history, provider, tier, api_key)
             history.append((message, bot_message))

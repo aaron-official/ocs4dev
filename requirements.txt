@@ -11,7 +11,6 @@ langchain-text-splitters==0.3.8
 langchain-openai==0.3.28
 langchain-anthropic==0.3.17
 langchain-google-genai==2.1.8
-langchain-huggingface==0.1.2
 
 # Supabase
 supabase==2.16.0
@@ -23,4 +22,3 @@ gradio==5.31.0
 # Utilities
 python-dotenv==1.1.1
 numpy==2.0.2
-sentence-transformers==4.1.0
