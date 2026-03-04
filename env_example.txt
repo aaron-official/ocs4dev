@@ -1,8 +1,4 @@
-# Supabase Configuration (Required for vector store)
-SUPABASE_URL=your-supabase-project-url
-SUPABASE_SERVICE_KEY=your-supabase-service-key
-
-# API Keys (Optional - users can add via UI)
+# API Keys (optional — users can also enter via the UI)
 OPENAI_API_KEY=your-openai-api-key
 ANTHROPIC_API_KEY=your-anthropic-api-key
 GOOGLE_API_KEY=your-google-api-key
